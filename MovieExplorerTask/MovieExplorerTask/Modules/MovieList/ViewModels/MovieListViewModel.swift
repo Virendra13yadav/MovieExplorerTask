@@ -7,28 +7,6 @@
 
 import UIKit
 
-//class MovieListViewModel {
-//    var movies: [Movie] = []
-//    var onDataFetched: (() -> Void)?
-//
-//    private let service = ServiceManager()
-//
-//    func loadMovies() {
-//        service.fetchPopularMovies { [weak self] result in
-//            DispatchQueue.main.async {
-//                switch result {
-//                case .success(let movies):
-//                    self?.movies = movies
-//                    self?.onDataFetched?()
-//                case .failure(let error):
-//                    print("Error: \(error.localizedDescription)")
-//                }
-//            }
-//        }
-//    }
-//}
-
-
 class MovieListViewModel {
     var movies: [Movie] = []
     var page = 1

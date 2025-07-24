@@ -25,7 +25,6 @@ class ServiceManager {
         guard let query = query, !query.isEmpty else {return}
         let queryEncoded = query.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
         let url = "\(APIConstants.search)?api_key=\(APIConstants.apiKey)&query=\(queryEncoded)&page=\(page)"
-        let parameters: Parameters = [:]
         
         AF.request(url, parameters: nil).responseDecodable(of: MovieResponse.self) { response in
             switch response.result {
@@ -63,16 +62,22 @@ class ServiceManager {
         }
     }
     
-    func fetchTrailer(id: Int, completion: @escaping (String?) -> Void) {
-        let url = "\(APIConstants.baseURL)/movie/\(id)/videos?api_key=\(APIConstants.apiKey)&language=en-US"
+    func fetchMovieTrailer(movieID: Int, completion: @escaping (String?) -> Void) {
+        let url = "\(APIConstants.baseURL)/movie/\(movieID)/videos?api_key=\(APIConstants.apiKey)&language=en-US"
         
-        AF.request(url).responseDecodable(of: TrailerResponse.self) { response in
-            guard let trailers = try? response.result.get().results else {
+        AF.request(url).responseDecodable(of: VideoResponse.self) { response in
+            switch response.result {
+            case .success(let videoResponse):
+                // Get YouTube trailer
+                if let trailer = videoResponse.results.first(where: { $0.site == "YouTube" && $0.type == "Trailer" }) {
+                    completion(trailer.key) // YouTube video key
+                } else {
+                    completion(nil)
+                }
+            case .failure(let error):
+                print("Trailer fetch error: \(error)")
                 completion(nil)
-                return
             }
-            let youtubeTrailer = trailers.first(where: { $0.site == "YouTube" && $0.type == "Trailer" })
-            completion(youtubeTrailer?.key)
         }
     }
     
