@@ -45,7 +45,6 @@ class MovieDetailViewController: UIViewController {
         view.backgroundColor = .systemBackground
         overrideUserInterfaceStyle = .dark
         navigationController?.navigationBar.tintColor = .white.withAlphaComponent(0.5)
-        self.title = "Movie Details"
         setupLayout()
         bindViewModel()
         viewModel.fetchDetails()

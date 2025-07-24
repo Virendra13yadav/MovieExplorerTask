@@ -17,6 +17,6 @@ target 'MovieExplorerTask' do
   end
 
 pod 'Alamofire'
-pod 'Realm'
+pod 'RealmSwift'
 
 end
