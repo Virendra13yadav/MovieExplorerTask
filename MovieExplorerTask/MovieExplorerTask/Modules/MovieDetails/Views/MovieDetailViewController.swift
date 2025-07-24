@@ -40,14 +40,12 @@ class MovieDetailViewController: UIViewController {
         return .portrait
     }
     
-    //MARK: methods
+    //MARK: setup methods
     private func initialSetup() {
-        navigationController?.navigationBar.barStyle = .black
-        navigationController?.navigationBar.isTranslucent = false
-        navigationController?.navigationBar.backgroundColor = .black
         view.backgroundColor = .systemBackground
         overrideUserInterfaceStyle = .dark
         navigationController?.navigationBar.tintColor = .white.withAlphaComponent(0.5)
+        self.title = "Movie Details"
         setupLayout()
         bindViewModel()
         viewModel.fetchDetails()
@@ -101,7 +99,6 @@ class MovieDetailViewController: UIViewController {
             watchTrailerButton.heightAnchor.constraint(equalToConstant: 44)
         ])
         
-
         NSLayoutConstraint.activate([
             scrollView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
             scrollView.bottomAnchor.constraint(equalTo: view.bottomAnchor),

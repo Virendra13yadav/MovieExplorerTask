@@ -79,7 +79,7 @@ class MovieCell: UITableViewCell {
 
     func configure(with movie: Movie) {
         titleLabel.text = movie.title
-        releaseLabel.text = "Release: \(movie.releaseDate ?? "N/A")"
+        releaseLabel.text = "Release: \(movie.releaseDate)"
         ratingLabel.text = "⭐️ \(movie.voteAverage)"
 
         poster.image = UIImage(systemName: "photo") // Placeholder

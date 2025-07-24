@@ -23,7 +23,7 @@ class MovieListViewModel {
             page = 1
             movies.removeAll()
         }
-
+        print("query after reset is \(reset)--> ", query ?? "")
         ServiceManager.shared.fetchPopularMovies(query: query, page: page) { [weak self] result in
             guard let self = self else { return }
             self.isLoading = false
