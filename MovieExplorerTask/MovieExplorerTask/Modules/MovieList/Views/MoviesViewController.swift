@@ -7,8 +7,6 @@
 
 import UIKit
 
-import UIKit
-
 class MovieViewController: UIViewController, UITableViewDelegate, UITableViewDataSource, UISearchBarDelegate {
     
     private let tableView = UITableView()
