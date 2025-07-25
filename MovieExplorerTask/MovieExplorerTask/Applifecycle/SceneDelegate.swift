@@ -26,7 +26,6 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         window.makeKeyAndVisible()
         
         UINavigationBar.appearance().tintColor = .white
-        NotificationManager.shared.requestPermission()
     }
 
     func sceneDidDisconnect(_ scene: UIScene) {
