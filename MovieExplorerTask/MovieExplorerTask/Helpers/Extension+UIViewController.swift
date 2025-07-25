@@ -19,4 +19,21 @@ extension UIViewController {
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }
+    
+    func showLoader() {
+        let loader = UIActivityIndicatorView(style: .large)
+        loader.center = view.center
+        loader.color = .gray
+        loader.hidesWhenStopped = true
+        loader.startAnimating()
+        loader.tag = 99999  // Unique tag to identify the loader
+        view.addSubview(loader)
+    }
+    
+    func hideLoader() {
+        if let loader = view.viewWithTag(99999) as? UIActivityIndicatorView {
+            loader.stopAnimating()
+            loader.removeFromSuperview()
+        }
+    }
 }

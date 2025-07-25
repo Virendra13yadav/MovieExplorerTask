@@ -78,10 +78,12 @@ class MovieCell: UITableViewCell {
     }
 
     func configure(with movie: Movie) {
+        let date = movie.releaseDate.toFormattedDate()
+        let rating = String(format: "%.1f", movie.voteAverage)
+        
         titleLabel.text = movie.title
-        releaseLabel.text = "Release: \(movie.releaseDate)"
-        ratingLabel.text = "⭐️ \(movie.voteAverage)"
-
+        releaseLabel.text = "Release: \(date)"
+        ratingLabel.text = "⭐️ \(rating)"
         poster.image = UIImage(systemName: "photo") // Placeholder
 
         if let path = movie.posterPath {

@@ -10,6 +10,7 @@ import AVKit
 
 class MovieDetailViewController: UIViewController {
     private lazy var noDataLabel = createNoDataLabel(text: "Movie details not available")
+    private let loader = UIActivityIndicatorView(style: .large)
     private let viewModel: MovieDetailViewModel
 
     private let scrollView = UIScrollView()
@@ -45,6 +46,7 @@ class MovieDetailViewController: UIViewController {
         view.backgroundColor = .systemBackground
         overrideUserInterfaceStyle = .dark
         navigationController?.navigationBar.tintColor = .white.withAlphaComponent(0.5)
+        showLoader()
         addNoData()
         bindViewModel()
         viewModel.fetchDetails()
@@ -141,6 +143,7 @@ class MovieDetailViewController: UIViewController {
     private func bindViewModel() {
         viewModel.onUpdate = { [weak self] in
             guard let self else {return}
+            self.hideLoader()
             noDataLabel.isHidden = viewModel.movie != nil
             if noDataLabel.isHidden {
                 setupLayout()
@@ -157,10 +160,12 @@ class MovieDetailViewController: UIViewController {
     //MARK: UI update
     private func updateUI() {
         guard let movie = viewModel.movie else { return }
+        let date = movie.releaseDate.toFormattedDate()
+        let rating = String(format: "%.1f", movie.voteAverage)
 
         titleLabel.text = movie.title
-        releaseLabel.text = "📅 \(movie.releaseDate)"
-        ratingLabel.text = "⭐️ \(movie.voteAverage)"
+        releaseLabel.text = "📅 \(date)"
+        ratingLabel.text = "⭐️ \(rating)"
         overviewLabel.text = movie.overview
         genresLabel.text = "Genres: " + movie.genres.map { $0.name }.joined(separator: ", ")
 

@@ -9,6 +9,7 @@ import UIKit
 
 class MovieViewController: UIViewController, UITableViewDelegate, UITableViewDataSource, UISearchBarDelegate {
     private lazy var noDataLabel = createNoDataLabel(text: "No movies found")
+    private let loader = UIActivityIndicatorView(style: .large)
     private let tableView = UITableView()
     private let viewModel = MovieListViewModel()
     private var searchBar = UISearchBar()
@@ -26,9 +27,11 @@ class MovieViewController: UIViewController, UITableViewDelegate, UITableViewDat
         view.backgroundColor = .systemBackground
         setupTableViewWithSearch()
         addNoData()
+        showLoader()
         
         viewModel.onUpdate = { [weak self] in
             guard let self else {return}
+            self.hideLoader()
             noDataLabel.isHidden = !viewModel.movies.isEmpty
             self.tableView.reloadData()
         }
