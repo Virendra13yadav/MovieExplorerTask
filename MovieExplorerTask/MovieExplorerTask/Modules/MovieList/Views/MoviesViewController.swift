@@ -8,7 +8,7 @@
 import UIKit
 
 class MovieViewController: UIViewController, UITableViewDelegate, UITableViewDataSource, UISearchBarDelegate {
-    
+    private lazy var noDataLabel = createNoDataLabel(text: "No movies found")
     private let tableView = UITableView()
     private let viewModel = MovieListViewModel()
     private var searchBar = UISearchBar()
@@ -25,9 +25,12 @@ class MovieViewController: UIViewController, UITableViewDelegate, UITableViewDat
         title = "Movies"
         view.backgroundColor = .systemBackground
         setupTableViewWithSearch()
-
+        addNoData()
+        
         viewModel.onUpdate = { [weak self] in
-            self?.tableView.reloadData()
+            guard let self else {return}
+            noDataLabel.isHidden = !viewModel.movies.isEmpty
+            self.tableView.reloadData()
         }
 
         viewModel.fetchMovies()
@@ -62,6 +65,15 @@ class MovieViewController: UIViewController, UITableViewDelegate, UITableViewDat
             stackView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             stackView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
         ])
+    }
+    
+    private func addNoData() {
+        view.addSubview(noDataLabel)
+        NSLayoutConstraint.activate([
+            noDataLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            noDataLabel.centerYAnchor.constraint(equalTo: view.centerYAnchor)
+        ])
+        noDataLabel.isHidden = true
     }
 
     // MARK: TableView Methods

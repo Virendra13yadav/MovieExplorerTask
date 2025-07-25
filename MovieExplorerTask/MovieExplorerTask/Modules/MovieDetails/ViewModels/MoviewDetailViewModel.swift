@@ -53,10 +53,10 @@ class MovieDetailViewModel {
     
     func fetchTrailer(completion: @escaping (URL?) -> Void) {
         ServiceManager.shared.fetchMovieTrailer(movieID: movieID) { key in
-            guard let _ = key else {
-                completion(nil)
-                return
-            }
+//            guard let _ = key else {
+//                completion(nil)
+//                return
+//            }
             // temp trailer URL
             let url = URL(string: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4")
             completion(url)

@@ -6,31 +6,94 @@
 //
 
 import XCTest
-@testable import MovieExplorerTask
+@testable import MovieExplorer
 
-final class MovieExplorerTaskTests: XCTestCase {
+final class MovieDetailViewModelTests: XCTestCase {
 
-    override func setUpWithError() throws {
-        // Put setup code here. This method is called before the invocation of each test method in the class.
+    var viewModel: MovieDetailViewModel!
+    var mockService: MockServiceManager!
+
+    override func setUp() {
+        super.setUp()
+        mockService = MockServiceManager()
+        viewModel = MovieDetailViewModel(movieID: 123, service: mockService)
     }
 
-    override func tearDownWithError() throws {
-        // Put teardown code here. This method is called after the invocation of each test method in the class.
+    func testFetchMovieDetailSuccess() {
+        let expectation = self.expectation(description: "Detail fetched")
+
+        mockService.mockDetailResult = .success(MovieDetail(id: 123, title: "Inception", overview: "Dreams", releaseDate: "2010", voteAverage: 8.7, genres: []))
+
+        viewModel.onUpdate = {
+            XCTAssertEqual(self.viewModel.movie?.title, "Inception")
+            expectation.fulfill()
+        }
+
+        viewModel.fetchDetails()
+
+        waitForExpectations(timeout: 2, handler: nil)
     }
 
-    func testExample() throws {
-        // This is an example of a functional test case.
-        // Use XCTAssert and related functions to verify your tests produce the correct results.
-        // Any test you write for XCTest can be annotated as throws and async.
-        // Mark your test throws to produce an unexpected failure when your test encounters an uncaught error.
-        // Mark your test async to allow awaiting for asynchronous code to complete. Check the results with assertions afterwards.
+    func testFetchMovieDetailFailure() {
+        let expectation = self.expectation(description: "Fetch failed")
+
+        mockService.mockDetailResult = .failure(NSError(domain: "TestError", code: 400, userInfo: nil))
+
+        viewModel.onError = { error in
+            XCTAssertNotNil(error)
+            expectation.fulfill()
+        }
+
+        viewModel.fetchDetails()
+
+        waitForExpectations(timeout: 2, handler: nil)
     }
 
-    func testPerformanceExample() throws {
-        // This is an example of a performance test case.
-        self.measure {
-            // Put the code you want to measure the time of here.
+    func testFetchTrailerReturnsURL() {
+        let expectation = self.expectation(description: "Trailer fetched")
+
+        mockService.mockVideos = [
+            MovieVideo(key: "abc123", name: "Official Trailer", site: "YouTube", type: "Trailer")
+        ]
+
+        viewModel.fetchTrailer { url in
+            XCTAssertEqual(url?.absoluteString, "https://www.youtube.com/watch?v=abc123")
+            expectation.fulfill()
+        }
+
+        waitForExpectations(timeout: 2)
+    }
+
+    func testFetchTrailerEmpty() {
+        let expectation = self.expectation(description: "No trailer found")
+
+        mockService.mockVideos = [] // empty list
+
+        viewModel.fetchTrailer { url in
+            XCTAssertNil(url)
+            expectation.fulfill()
+        }
+
+        waitForExpectations(timeout: 2)
+    }
+}
+
+class MockServiceManager: ServiceProtocol {
+
+    var mockDetailResult: Result<MovieDetail, Error>?
+    var mockVideos: [MovieVideo]?
+
+    func fetchMovieDetail(id: Int, completion: @escaping (Result<MovieDetail, Error>) -> Void) {
+        if let result = mockDetailResult {
+            completion(result)
         }
     }
 
+    func fetchVideos(for movieID: Int, completion: @escaping (Result<[MovieVideo], Error>) -> Void) {
+        if let videos = mockVideos {
+            completion(.success(videos))
+        } else {
+            completion(.success([]))
+        }
+    }
 }

@@ -70,7 +70,7 @@ class ServiceManager {
             case .success(let videoResponse):
                 // Get YouTube trailer
                 if let trailer = videoResponse.results.first(where: { $0.site == "YouTube" && $0.type == "Trailer" }) {
-                    completion(trailer.key) // YouTube video key
+                    completion(trailer.key)
                 } else {
                     completion(nil)
                 }

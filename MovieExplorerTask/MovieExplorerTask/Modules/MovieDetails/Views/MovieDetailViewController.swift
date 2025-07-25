@@ -9,7 +9,7 @@ import UIKit
 import AVKit
 
 class MovieDetailViewController: UIViewController {
-
+    private lazy var noDataLabel = createNoDataLabel(text: "Movie details not available")
     private let viewModel: MovieDetailViewModel
 
     private let scrollView = UIScrollView()
@@ -45,9 +45,18 @@ class MovieDetailViewController: UIViewController {
         view.backgroundColor = .systemBackground
         overrideUserInterfaceStyle = .dark
         navigationController?.navigationBar.tintColor = .white.withAlphaComponent(0.5)
-        setupLayout()
+        addNoData()
         bindViewModel()
         viewModel.fetchDetails()
+    }
+    
+    private func addNoData() {
+        view.addSubview(noDataLabel)
+        NSLayoutConstraint.activate([
+            noDataLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            noDataLabel.centerYAnchor.constraint(equalTo: view.centerYAnchor)
+        ])
+        noDataLabel.isHidden = true
     }
 
     private func setupLayout() {
@@ -131,11 +140,17 @@ class MovieDetailViewController: UIViewController {
     //MARK: view Model
     private func bindViewModel() {
         viewModel.onUpdate = { [weak self] in
-            self?.updateUI()
+            guard let self else {return}
+            noDataLabel.isHidden = viewModel.movie != nil
+            if noDataLabel.isHidden {
+                setupLayout()
+                self.updateUI()
+            }
         }
 
-        viewModel.onError = { error in
+        viewModel.onError = {[weak self] error in
             print("Error fetching detail:", error)
+            self?.noDataLabel.isHidden = false
         }
     }
 
