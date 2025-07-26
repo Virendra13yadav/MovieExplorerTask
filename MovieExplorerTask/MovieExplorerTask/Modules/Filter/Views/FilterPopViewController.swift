@@ -1,10 +1,3 @@
-//
-//  FilterPopViewController.swift
-//  MovieExplorerTask
-//
-//  Created by Apple on 26/07/25.
-//
-
 import UIKit
 
 protocol FilterViewDelegate: AnyObject {
@@ -15,38 +8,60 @@ class FilterView: UIView {
 
     weak var delegate: FilterViewDelegate?
 
+    private let blurEffectView: UIVisualEffectView = {
+        let blur = UIBlurEffect(style: .dark)
+        return UIVisualEffectView(effect: blur)
+    }()
+
     private let containerView = UIView()
-    
+    private let titleLabel: UILabel = {
+        let label = UILabel()
+        label.text = "Filters"
+        label.font = UIFont.boldSystemFont(ofSize: 24)
+        label.textColor = .white
+        return label
+    }()
+
     private let sortSegmented: UISegmentedControl = {
         let control = UISegmentedControl(items: ["Popularity", "Rating"])
         control.selectedSegmentIndex = 0
         return control
     }()
-    
-    private let genrePicker = UIPickerView()
-    private let yearPicker = UIPickerView()
+
+    private lazy var collectionView: UICollectionView = {
+        let layout = createLayout()
+        let collection = UICollectionView(frame: .zero, collectionViewLayout: layout)
+        collection.delegate = self
+        collection.dataSource = self
+        collection.backgroundColor = .clear
+        collection.showsHorizontalScrollIndicator = false
+        collection.register(FilterCell.self, forCellWithReuseIdentifier: FilterCell.identifier)
+        return collection
+    }()
 
     private let applyButton: UIButton = {
         let button = UIButton(type: .system)
-        button.setTitle("Apply Filter", for: .normal)
+        button.setTitle("Apply", for: .normal)
         button.setTitleColor(.white, for: .normal)
-        button.backgroundColor = .systemBlue
-        button.layer.cornerRadius = 8
+        button.titleLabel?.font = UIFont.boldSystemFont(ofSize: 18)
+        button.backgroundColor = .systemGray
+        button.layer.cornerRadius = 12
         return button
     }()
-    
+
     private let closeButton: UIButton = {
         let button = UIButton(type: .system)
-        button.setTitle("Close", for: .normal)
-        button.setTitleColor(.systemRed, for: .normal)
+        button.setTitle("✕", for: .normal)
+        button.titleLabel?.font = .boldSystemFont(ofSize: 24)
+        button.setTitleColor(.white, for: .normal)
         return button
     }()
-    
-    private let genres = ["All", "Action", "Comedy", "Drama", "Horror"]
+
+    private let genres = ["All", "Action", "Comedy", "Drama", "Fantasy", "Horror", "Sci-Fi", "Thriller"]
     private let years = (1980...2025).reversed().map { "\($0)" }
-    
-    var selectedGenre: String = "All"
-    var selectedYear: String = "All"
+
+    private var selectedGenreIndex: Int = 0
+    private var selectedYearIndex: Int = 0
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -58,97 +73,153 @@ class FilterView: UIView {
     }
 
     private func setupView() {
-        backgroundColor = UIColor.black.withAlphaComponent(0.6)
+        addSubview(blurEffectView)
+        blurEffectView.frame = bounds
+        blurEffectView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
 
-        // Container View
-        containerView.backgroundColor = .systemBackground
-        containerView.layer.cornerRadius = 16
+        containerView.backgroundColor = .black
+        containerView.layer.cornerRadius = 24
         containerView.translatesAutoresizingMaskIntoConstraints = false
         addSubview(containerView)
 
-        genrePicker.dataSource = self
-        genrePicker.delegate = self
-        yearPicker.dataSource = self
-        yearPicker.delegate = self
-
-        applyButton.addTarget(self, action: #selector(applyFilter), for: .touchUpInside)
-        closeButton.addTarget(self, action: #selector(dismiss), for: .touchUpInside)
-
-        [sortSegmented, genrePicker, yearPicker, applyButton, closeButton].forEach {
+        [titleLabel, closeButton, sortSegmented, collectionView, applyButton].forEach {
             $0.translatesAutoresizingMaskIntoConstraints = false
             containerView.addSubview($0)
         }
 
+        applyButton.addTarget(self, action: #selector(applyFilter), for: .touchUpInside)
+        closeButton.addTarget(self, action: #selector(dismiss), for: .touchUpInside)
+
         NSLayoutConstraint.activate([
+            containerView.topAnchor.constraint(equalTo: topAnchor),
             containerView.leadingAnchor.constraint(equalTo: leadingAnchor),
             containerView.trailingAnchor.constraint(equalTo: trailingAnchor),
             containerView.bottomAnchor.constraint(equalTo: bottomAnchor),
-            containerView.heightAnchor.constraint(equalTo: heightAnchor, multiplier: 0.5),
 
-            sortSegmented.topAnchor.constraint(equalTo: containerView.topAnchor, constant: 16),
-            sortSegmented.centerXAnchor.constraint(equalTo: containerView.centerXAnchor),
+            titleLabel.topAnchor.constraint(equalTo: containerView.safeAreaLayoutGuide.topAnchor, constant: 16),
+            titleLabel.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 24),
 
-            genrePicker.topAnchor.constraint(equalTo: sortSegmented.bottomAnchor, constant: 16),
-            genrePicker.leadingAnchor.constraint(equalTo: containerView.leadingAnchor),
-            genrePicker.trailingAnchor.constraint(equalTo: containerView.trailingAnchor),
-            genrePicker.heightAnchor.constraint(equalToConstant: 100),
+            closeButton.centerYAnchor.constraint(equalTo: titleLabel.centerYAnchor),
+            closeButton.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -24),
 
-            yearPicker.topAnchor.constraint(equalTo: genrePicker.bottomAnchor, constant: 16),
-            yearPicker.leadingAnchor.constraint(equalTo: containerView.leadingAnchor),
-            yearPicker.trailingAnchor.constraint(equalTo: containerView.trailingAnchor),
-            yearPicker.heightAnchor.constraint(equalToConstant: 100),
+            sortSegmented.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 16),
+            sortSegmented.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 24),
+            sortSegmented.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -24),
 
-            applyButton.topAnchor.constraint(equalTo: yearPicker.bottomAnchor, constant: 16),
+            collectionView.topAnchor.constraint(equalTo: sortSegmented.bottomAnchor, constant: 16),
+            collectionView.leadingAnchor.constraint(equalTo: containerView.leadingAnchor),
+            collectionView.trailingAnchor.constraint(equalTo: containerView.trailingAnchor),
+            collectionView.bottomAnchor.constraint(equalTo: applyButton.topAnchor, constant: -16),
+
+            applyButton.bottomAnchor.constraint(equalTo: containerView.safeAreaLayoutGuide.bottomAnchor, constant: -24),
             applyButton.centerXAnchor.constraint(equalTo: containerView.centerXAnchor),
-            applyButton.widthAnchor.constraint(equalToConstant: 150),
-            applyButton.heightAnchor.constraint(equalToConstant: 44),
-
-            closeButton.topAnchor.constraint(equalTo: applyButton.bottomAnchor, constant: 8),
-            closeButton.centerXAnchor.constraint(equalTo: containerView.centerXAnchor)
+            applyButton.widthAnchor.constraint(equalToConstant: 200),
+            applyButton.heightAnchor.constraint(equalToConstant: 50)
         ])
-        
-        let tap = UITapGestureRecognizer(target: self, action: #selector(backgroundTapped(_:)))
-        addGestureRecognizer(tap)
     }
 
     @objc private func applyFilter() {
         let sort = sortSegmented.selectedSegmentIndex == 0 ? "popularity.desc" : "vote_average.desc"
-        let genre = selectedGenre == "All" ? "" : selectedGenre
-        let year = selectedYear == "All" ? "" : selectedYear
-        delegate?.didApplyFilter(sortBy: sort, genre: genre, year: year)
+        let selectedGenre = genres[selectedGenreIndex] == "All" ? nil : genres[selectedGenreIndex]
+        let selectedYear = years[selectedYearIndex]
+        delegate?.didApplyFilter(sortBy: sort, genre: selectedGenre, year: selectedYear)
         dismiss()
     }
 
     @objc private func dismiss() {
         self.removeFromSuperview()
     }
-    
-    @objc private func backgroundTapped(_ sender: UITapGestureRecognizer) {
-        let location = sender.location(in: self)
-        if !containerView.frame.contains(location) {
-            dismiss()
+}
+
+// MARK: - Compositional Layout
+private extension FilterView {
+    func createLayout() -> UICollectionViewLayout {
+        return UICollectionViewCompositionalLayout { sectionIndex, _ in
+            let itemSize = NSCollectionLayoutSize(widthDimension: .estimated(80), heightDimension: .absolute(36))
+            let item = NSCollectionLayoutItem(layoutSize: itemSize)
+
+            let groupSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .absolute(36))
+            let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize, subitems: [item])
+            group.interItemSpacing = .fixed(12)
+
+            let section = NSCollectionLayoutSection(group: group)
+            section.orthogonalScrollingBehavior = .continuous
+            section.contentInsets = NSDirectionalEdgeInsets(top: 10, leading: 16, bottom: 10, trailing: 16)
+            section.interGroupSpacing = 12
+
+            return section
         }
     }
 }
 
-// MARK: - UIPickerView DataSource & Delegate
-extension FilterView: UIPickerViewDataSource, UIPickerViewDelegate {
-    func numberOfComponents(in pickerView: UIPickerView) -> Int { 1 }
-    
-    func pickerView(_ pickerView: UIPickerView, numberOfRowsInComponent component: Int) -> Int {
-        pickerView == genrePicker ? genres.count : years.count
+// MARK: - UICollectionView Delegate & DataSource
+extension FilterView: UICollectionViewDataSource, UICollectionViewDelegate {
+    func numberOfSections(in collectionView: UICollectionView) -> Int {
+        return 2 // 0 = Genres, 1 = Years
     }
-    
-    func pickerView(_ pickerView: UIPickerView, titleForRow row: Int, forComponent component: Int) -> String? {
-        pickerView == genrePicker ? genres[row] : years[row]
+
+    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+        return section == 0 ? genres.count : years.count
     }
-    
-    func pickerView(_ pickerView: UIPickerView, didSelectRow row: Int, inComponent component: Int) {
-        if pickerView == genrePicker {
-            selectedGenre = genres[row]
+
+    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: FilterCell.identifier, for: indexPath) as? FilterCell else {
+            return UICollectionViewCell()
+        }
+
+        let text = indexPath.section == 0 ? genres[indexPath.item] : years[indexPath.item]
+        let isSelected = (indexPath.section == 0 && indexPath.item == selectedGenreIndex) ||
+                         (indexPath.section == 1 && indexPath.item == selectedYearIndex)
+
+        cell.configure(with: text, selected: isSelected)
+        return cell
+    }
+
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        if indexPath.section == 0 {
+            selectedGenreIndex = indexPath.item
         } else {
-            selectedYear = years[row]
+            selectedYearIndex = indexPath.item
         }
+        collectionView.reloadSections(IndexSet(integer: indexPath.section))
     }
 }
 
+
+// MARK: - Cell Class
+class FilterCell: UICollectionViewCell {
+    static let identifier = "FilterCell"
+
+    private let label: UILabel = {
+        let lbl = UILabel()
+        lbl.font = UIFont.systemFont(ofSize: 14, weight: .medium)
+        lbl.textAlignment = .center
+        lbl.textColor = .white
+        lbl.translatesAutoresizingMaskIntoConstraints = false
+        return lbl
+    }()
+
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        contentView.backgroundColor = .darkGray
+        contentView.layer.cornerRadius = 16
+        contentView.clipsToBounds = true
+        contentView.addSubview(label)
+
+        NSLayoutConstraint.activate([
+            label.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 12),
+            label.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -12),
+            label.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 6),
+            label.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -6)
+        ])
+    }
+
+    func configure(with text: String, selected: Bool) {
+        label.text = text
+        contentView.backgroundColor = selected ? .systemGray : .darkGray
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+}

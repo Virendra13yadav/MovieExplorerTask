@@ -60,8 +60,8 @@ extension MovieViewController {
     @objc private func filterTapped() {
         let filterView = FilterView(frame: view.bounds)
         filterView.delegate = self
-        filterView.alpha = 0
-        filterView.backgroundColor = .secondarySystemBackground
+//        filterView.alpha = 0
+//        filterView.backgroundColor = .secondarySystemBackground
         view.addSubview(filterView)
 
         UIView.animate(withDuration: 0.3) {
