@@ -14,4 +14,5 @@ struct APIConstants {
     static let popularMovie = baseURL + "/movie/popular"
     static let search = baseURL + "/search/movie"
     static let imageBaseURL = "https://image.tmdb.org/t/p/w500"
+    static let discoverMovie = baseURL + "/discover/movie"
 }

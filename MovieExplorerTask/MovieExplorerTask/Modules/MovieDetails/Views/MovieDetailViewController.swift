@@ -16,14 +16,43 @@ class MovieDetailViewController: UIViewController {
     private let scrollView = UIScrollView()
     private let contentStack = UIStackView()
 
-    private let posterImageView = UIImageView()
     private let titleLabel = UILabel()
     private let genresLabel = UILabel()
     private let releaseLabel = UILabel()
     private let ratingLabel = UILabel()
     private let overviewLabel = UILabel()
-    private let favoriteButton = UIButton(type: .system)
-
+    
+    private let favoriteButton: UIButton = {
+        let button = UIButton(type: .system)
+        button.setTitleColor(.white, for: .normal)
+        button.backgroundColor = .white.withAlphaComponent(0.5)
+        button.titleLabel?.font = .systemFont(ofSize: 16, weight: .semibold)
+        button.layer.cornerRadius = 8
+        button.translatesAutoresizingMaskIntoConstraints = false
+        button.heightAnchor.constraint(equalToConstant: 44).isActive = true
+        return button
+    }()
+    
+    private let watchTrailerButton: UIButton = {
+        let button = UIButton(type: .system)
+        button.setTitle("🎬 Watch Trailer", for: .normal)
+        button.setTitleColor(.white, for: .normal)
+        button.backgroundColor = .white.withAlphaComponent(0.5)
+        button.titleLabel?.font = .systemFont(ofSize: 16, weight: .semibold)
+        button.layer.cornerRadius = 8
+        button.translatesAutoresizingMaskIntoConstraints = false
+        button.heightAnchor.constraint(equalToConstant: 44).isActive = true
+        return button
+    }()
+    
+    private let posterImageView: UIImageView = {
+        let imageView = UIImageView()
+        imageView.contentMode = .scaleAspectFill
+        imageView.clipsToBounds = true
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        return imageView
+    }()
+    
     init(movieID: Int) {
         self.viewModel = MovieDetailViewModel(movieID: movieID)
         super.init(nibName: nil, bundle: nil)
@@ -63,16 +92,19 @@ class MovieDetailViewController: UIViewController {
 
     private func setupLayout() {
         scrollView.translatesAutoresizingMaskIntoConstraints = false
+        scrollView.showsVerticalScrollIndicator = false
+        scrollView.showsHorizontalScrollIndicator = false
         contentStack.axis = .vertical
         contentStack.spacing = 12
         contentStack.translatesAutoresizingMaskIntoConstraints = false
 
-        [posterImageView, titleLabel, genresLabel, releaseLabel, ratingLabel, overviewLabel, favoriteButton].forEach {
+        [posterImageView, titleLabel, genresLabel, releaseLabel, ratingLabel, overviewLabel, favoriteButton, watchTrailerButton].forEach {
             $0.translatesAutoresizingMaskIntoConstraints = false
             contentStack.addArrangedSubview($0)
         }
 
-        posterImageView.heightAnchor.constraint(equalToConstant: 200).isActive = true
+        // Maintain 2:3 aspect ratio (height = width * 1.5)
+        posterImageView.heightAnchor.constraint(equalTo: posterImageView.widthAnchor, multiplier: 1.5).isActive = true
         posterImageView.contentMode = .scaleAspectFill
         posterImageView.clipsToBounds = true
         posterImageView.layer.cornerRadius = 10
@@ -90,24 +122,16 @@ class MovieDetailViewController: UIViewController {
         overviewLabel.numberOfLines = 0
         overviewLabel.font = .systemFont(ofSize: 16)
 
-        favoriteButton.setTitleColor(.white.withAlphaComponent(0.5), for: .normal)
         favoriteButton.addTarget(self, action: #selector(favoriteTapped), for: .touchUpInside)
         updateFavoriteButton()
+        
+        watchTrailerButton.addTarget(self, action: #selector(watchTrailerTapped), for: .touchUpInside)
+        
         scrollView.backgroundColor = .clear
         contentStack.backgroundColor = .clear
         
         view.addSubview(scrollView)
         scrollView.addSubview(contentStack)
-        
-        watchTrailerButton.addTarget(self, action: #selector(watchTrailerTapped), for: .touchUpInside)
-        view.addSubview(watchTrailerButton)
-
-        NSLayoutConstraint.activate([
-            watchTrailerButton.topAnchor.constraint(equalTo: favoriteButton.bottomAnchor, constant: 16),
-            watchTrailerButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
-            watchTrailerButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
-            watchTrailerButton.heightAnchor.constraint(equalToConstant: 44)
-        ])
         
         NSLayoutConstraint.activate([
             scrollView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
@@ -122,17 +146,6 @@ class MovieDetailViewController: UIViewController {
             contentStack.widthAnchor.constraint(equalTo: scrollView.widthAnchor, constant: -32)
         ])
     }
-    
-    private let watchTrailerButton: UIButton = {
-        let button = UIButton(type: .system)
-        button.setTitle("🎬 Watch Trailer", for: .normal)
-        button.setTitleColor(.white, for: .normal)
-        button.backgroundColor = .white.withAlphaComponent(0.5)
-        button.titleLabel?.font = .systemFont(ofSize: 16, weight: .semibold)
-        button.layer.cornerRadius = 8
-        button.translatesAutoresizingMaskIntoConstraints = false
-        return button
-    }()
     
     @objc private func watchTrailerTapped() {
         viewModel.playTrailer(on: self)

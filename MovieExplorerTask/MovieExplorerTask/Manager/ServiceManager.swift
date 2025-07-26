@@ -11,17 +11,10 @@ import Alamofire
 class ServiceManager {
     static let shared = ServiceManager()
     
-    func fetchPopularMovies(query: String? = nil, page: Int = 1, completion: @escaping (Result<[Movie], Error>) -> Void) {
-        var url = ""
-        if !(query ?? "").isEmpty {
-            let queryEncoded = query?.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
-            url = "\(APIConstants.search)?api_key=\(APIConstants.apiKey)&query=\(queryEncoded)&page=\(page)"
-            
-        } else {
-            url = "\(APIConstants.popularMovie)?api_key=\(APIConstants.apiKey)&page=\(page)"
-        }
-        print(url)
-        AF.request(url, parameters: nil).responseDecodable(of: MovieResponse.self) { response in
+    func fetchPopularMovies(params: [String: Any] = [:], query: String? = nil, page: Int = 1, completion: @escaping (Result<[Movie], Error>) -> Void) {
+        let url = "\(APIConstants.discoverMovie)?api_key=\(APIConstants.apiKey)&page=\(page)"
+        print("url --> ", url, "\n params -> ", params)
+        AF.request(url, parameters: params).responseDecodable(of: MovieResponse.self) { response in
             switch response.result {
             case .success(let data): completion(.success(data.results))
             case .failure(let error): completion(.failure(error))
