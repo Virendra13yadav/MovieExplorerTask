@@ -84,22 +84,37 @@ class MovieCell: UITableViewCell {
         titleLabel.text = movie.title
         releaseLabel.text = "Release: \(date)"
         ratingLabel.text = "⭐️ \(rating)"
-        poster.image = UIImage(systemName: "photo") // Placeholder
 
         if let path = movie.posterPath {
             let url = URL(string: "https://image.tmdb.org/t/p/w500\(path)")
-            DispatchQueue.global().async {
+            DispatchQueue.global().async { [weak self] in
                 if let url = url, let data = try? Data(contentsOf: url),
                    let image = UIImage(data: data) {
                     DispatchQueue.main.async {
-                        self.poster.image = image
+                        self?.poster.image = image
                     }
+                } else {
+                    self?.setPlaceholderImage()
                 }
             }
+        } else {
+            setPlaceholderImage()
         }
     }
 
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+    
+    private func setPlaceholderImage() {
+        DispatchQueue.main.async { [weak self] in
+            guard let self else {return}
+            let config = UIImage.SymbolConfiguration(pointSize: 80, weight: .light)
+            let placeholder = UIImage(systemName: "photo", withConfiguration: config)?
+                .withTintColor(.systemGray, renderingMode: .alwaysOriginal)
+
+            poster.image = placeholder
+            poster.contentMode = .center
+        }
     }
 }

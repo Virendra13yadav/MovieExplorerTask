@@ -182,6 +182,7 @@ class MovieDetailViewController: UIViewController {
         overviewLabel.text = movie.overview
         genresLabel.text = "Genres: " + movie.genres.map { $0.name }.joined(separator: ", ")
 
+        setPlaceholderImage()
         if let path = movie.posterPath {
             let url = URL(string: "https://image.tmdb.org/t/p/w500\(path)")
             DispatchQueue.global().async {
@@ -207,6 +208,18 @@ class MovieDetailViewController: UIViewController {
 
         if isNowFav {
             NotificationManager.shared.sendFavoriteNotification(for: viewModel.movie?.title ?? "Movie")
+        }
+    }
+    
+    private func setPlaceholderImage() {
+        DispatchQueue.main.async { [weak self] in
+            guard let self else {return}
+            let config = UIImage.SymbolConfiguration(pointSize: 80, weight: .light)
+            let placeholder = UIImage(systemName: "photo", withConfiguration: config)?
+                .withTintColor(.systemGray, renderingMode: .alwaysOriginal)
+
+            posterImageView.image = placeholder
+            posterImageView.contentMode = .center
         }
     }
 }

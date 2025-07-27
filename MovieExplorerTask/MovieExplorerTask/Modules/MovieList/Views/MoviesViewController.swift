@@ -136,9 +136,14 @@ extension MovieViewController: UITableViewDelegate, UITableViewDataSource {
 // MARK: Search (Debounced)
 extension MovieViewController: UISearchBarDelegate {
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
-        searchTimer?.invalidate()
-        searchTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: false) { [weak self] _ in
-            self?.viewModel.updateSearch(query: searchText)
+        if searchText.isEmpty {
+            viewModel.movies.removeAll()
+            viewModel.fetchMovies()
+        } else {
+            searchTimer?.invalidate()
+            searchTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: false) { [weak self] _ in
+                self?.viewModel.updateSearch(query: searchText)
+            }
         }
     }
 }
