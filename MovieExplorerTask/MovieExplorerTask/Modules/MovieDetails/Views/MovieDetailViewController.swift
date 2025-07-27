@@ -7,6 +7,7 @@
 
 import UIKit
 import SwiftUI
+import AVKit
 
 class MovieDetailViewController: UIViewController {
     private lazy var noDataLabel = createNoDataLabel(text: "Movie details not available")
