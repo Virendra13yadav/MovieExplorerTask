@@ -127,6 +127,7 @@ extension MovieViewController: UITableViewDelegate, UITableViewDataSource {
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        guard viewModel.movies.count > indexPath.row else {return}
         let movie = viewModel.movies[indexPath.row]
         let detailVC = MovieDetailViewController(movieID: movie.id)
         navigationController?.pushViewController(detailVC, animated: true)

@@ -186,16 +186,19 @@ extension MovieDetailViewController {
         overviewLabel.text = movie.overview
         genresLabel.text = "Genres: " + movie.genres.map { $0.name }.joined(separator: ", ")
 
-        setPlaceholderImage()
         if let path = movie.posterPath {
             let url = URL(string: "\(APIConstants.imageBaseURL)\(path)")
-            DispatchQueue.global().async {
+            DispatchQueue.global().async { [weak self] in
                 if let data = try? Data(contentsOf: url!), let image = UIImage(data: data) {
                     DispatchQueue.main.async {
-                        self.posterImageView.image = image
+                        self?.posterImageView.image = image
                     }
+                } else {
+                    self?.setPlaceholderImage()
                 }
             }
+        } else {
+            self.setPlaceholderImage()
         }
 
         updateFavoriteButton()
