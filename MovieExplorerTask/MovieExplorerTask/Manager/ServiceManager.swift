@@ -63,21 +63,18 @@ class ServiceManager {
         }
     }
     
-    func fetchMovieTrailer(movieID: Int, completion: @escaping (String?) -> Void) {
-        let url = "\(APIConstants.baseURL)/movie/\(movieID)/videos?api_key=\(APIConstants.apiKey)&language=en-US"
+    func fetchTrailerURL(id: Int, completion: @escaping ([Video]?) -> Void) {
+        let urlString = "\(APIConstants.baseURL)/movie/\(id)/videos?api_key=\(APIConstants.apiKey)&language=en-US"
         
-        AF.request(url).responseDecodable(of: VideoResponse.self) { response in
+        print("url: \(urlString)")
+        AF.request(urlString).validate().responseDecodable(of: VideoResponse.self) { response in
             switch response.result {
             case .success(let videoResponse):
-                // Get YouTube trailer
-                if let trailer = videoResponse.results.first(where: { $0.site == "YouTube" && $0.type == "Trailer" }) {
-                    completion(trailer.key)
-                } else {
-                    completion(nil)
-                }
-            case .failure(let error):
-                print("Trailer fetch error: \(error)")
-                completion(nil)
+                let trailers = videoResponse.results.filter({ $0.site == "YouTube" && $0.type == "Trailer" })
+                completion(trailers)
+        
+            case .failure(_):
+                completion([])
             }
         }
     }

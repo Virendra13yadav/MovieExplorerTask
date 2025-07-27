@@ -9,6 +9,12 @@ import Foundation
 import UIKit
 
 extension UIViewController {
+    func navTitleColor() {
+        view.backgroundColor = .systemBackground
+        overrideUserInterfaceStyle = .dark
+        navigationController?.navigationBar.tintColor = .white.withAlphaComponent(0.5)
+    }
+    
     func createNoDataLabel(text: String = "No data available") -> UILabel {
         let label = UILabel()
         label.text = text
@@ -36,4 +42,14 @@ extension UIViewController {
             loader.removeFromSuperview()
         }
     }
+    
+    func showAlert(title: String, message: String) {
+        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "OK", style: .default))
+        present(alert, animated: true)
+    }
+}
+
+extension URL: Identifiable {
+    public var id: String { absoluteString }
 }

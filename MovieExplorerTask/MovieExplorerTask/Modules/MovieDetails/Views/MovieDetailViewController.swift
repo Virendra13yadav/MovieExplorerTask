@@ -6,7 +6,7 @@
 //
 
 import UIKit
-import AVKit
+import SwiftUI
 
 class MovieDetailViewController: UIViewController {
     private lazy var noDataLabel = createNoDataLabel(text: "Movie details not available")
@@ -35,7 +35,7 @@ class MovieDetailViewController: UIViewController {
     
     private let watchTrailerButton: UIButton = {
         let button = UIButton(type: .system)
-        button.setTitle("🎬 Watch Trailer", for: .normal)
+        button.setTitle("🎬 Movie Trailers", for: .normal)
         button.setTitleColor(.white, for: .normal)
         button.backgroundColor = .white.withAlphaComponent(0.5)
         button.titleLabel?.font = .systemFont(ofSize: 16, weight: .semibold)
@@ -69,12 +69,13 @@ class MovieDetailViewController: UIViewController {
     override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
         return .portrait
     }
-    
-    //MARK: setup methods
+}
+
+//MARK: setup methods
+extension MovieDetailViewController {
     private func initialSetup() {
-        view.backgroundColor = .systemBackground
-        overrideUserInterfaceStyle = .dark
-        navigationController?.navigationBar.tintColor = .white.withAlphaComponent(0.5)
+        self.title = "Movies Details"
+        navTitleColor()
         showLoader()
         addNoData()
         bindViewModel()
@@ -109,6 +110,7 @@ class MovieDetailViewController: UIViewController {
         posterImageView.clipsToBounds = true
         posterImageView.layer.cornerRadius = 10
 
+        titleLabel.numberOfLines = 0
         titleLabel.font = .boldSystemFont(ofSize: 20)
         titleLabel.textColor = .label
 
@@ -148,7 +150,8 @@ class MovieDetailViewController: UIViewController {
     }
     
     @objc private func watchTrailerTapped() {
-        viewModel.playTrailer(on: self)
+        let trailerVC = VideoTrailersViewController(viewModel: VideoTrailersViewModel(movieID: viewModel.movieID), movieTitle: viewModel.movie?.title ?? "Trailers")
+        navigationController?.pushViewController(trailerVC, animated: true)
     }
 
 
@@ -184,7 +187,7 @@ class MovieDetailViewController: UIViewController {
 
         setPlaceholderImage()
         if let path = movie.posterPath {
-            let url = URL(string: "https://image.tmdb.org/t/p/w500\(path)")
+            let url = URL(string: "\(APIConstants.imageBaseURL)\(path)")
             DispatchQueue.global().async {
                 if let data = try? Data(contentsOf: url!), let image = UIImage(data: data) {
                     DispatchQueue.main.async {
@@ -220,6 +223,19 @@ class MovieDetailViewController: UIViewController {
 
             posterImageView.image = placeholder
             posterImageView.contentMode = .center
+        }
+    }
+}
+
+//MARK: player
+extension MovieDetailViewController {
+    private func playTrailerAV(with key: String) {
+        guard let url = URL(string: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4") else { return }
+        
+        let playerVC = AVPlayerViewController()
+        playerVC.player = AVPlayer(url: url)
+        present(playerVC, animated: true) {
+            playerVC.player?.play()
         }
     }
 }

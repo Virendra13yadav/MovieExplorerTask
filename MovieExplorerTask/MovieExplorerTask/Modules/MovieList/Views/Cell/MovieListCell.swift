@@ -86,7 +86,7 @@ class MovieCell: UITableViewCell {
         ratingLabel.text = "⭐️ \(rating)"
 
         if let path = movie.posterPath {
-            let url = URL(string: "https://image.tmdb.org/t/p/w500\(path)")
+            let url = URL(string: "\(APIConstants.imageBaseURL)\(path)")
             DispatchQueue.global().async { [weak self] in
                 if let url = url, let data = try? Data(contentsOf: url),
                    let image = UIImage(data: data) {

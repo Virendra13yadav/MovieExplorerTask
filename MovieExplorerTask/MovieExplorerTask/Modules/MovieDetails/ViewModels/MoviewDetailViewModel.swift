@@ -9,17 +9,34 @@ import Foundation
 import UIKit
 
 class MovieDetailViewModel {
+    //video trailers
+    @Published var trailers: [Video] = []
+    @Published var isLoading = false
+    @Published var error: String?
+    //movie details
     let movieID: Int
     var movie: MovieDetail?
-    private let playerManager: VideoPlayerManager
+    //callback
     var onUpdate: (() -> Void)?
     var onError: ((Error) -> Void)?
     
-    init(movieID: Int, playerManager: VideoPlayerManager = VideoPlayerManager()) {
+    init(movieID: Int) {
         self.movieID = movieID
-        self.playerManager = playerManager
     }
 
+    //methods
+    func toggleFavorite() -> Bool {
+        guard let movie = movie else { return false }
+        return FavoritesManager.shared.toggleFavorite(movie: movie)
+    }
+
+    func isFavorite() -> Bool {
+        return FavoritesManager.shared.isFavorite(id: movieID)
+    }
+}
+
+//MARK: api calling
+extension MovieDetailViewModel {
     func fetchDetails() {
         ServiceManager.shared.fetchMovieDetail(id: movieID) { [weak self] detail in
             DispatchQueue.main.async {
@@ -30,36 +47,6 @@ class MovieDetailViewModel {
                     self?.onError?(NSError(domain: "", code: 0, userInfo: [NSLocalizedDescriptionKey: "Failed to load movie details."]))
                 }
             }
-        }
-    }
-
-    func toggleFavorite() -> Bool {
-        guard let movie = movie else { return false }
-        return FavoritesManager.shared.toggleFavorite(movie: movie)
-    }
-
-    func isFavorite() -> Bool {
-        return FavoritesManager.shared.isFavorite(id: movieID)
-    }
-    
-    func playTrailer(on viewController: UIViewController) {
-        fetchTrailer { [weak self] url in
-            guard let url = url else { return }
-            DispatchQueue.main.async {
-                self?.playerManager.playVideo(from: url, on: viewController)
-            }
-        }
-    }
-    
-    func fetchTrailer(completion: @escaping (URL?) -> Void) {
-        ServiceManager.shared.fetchMovieTrailer(movieID: movieID) { key in
-//            guard let _ = key else {
-//                completion(nil)
-//                return
-//            }
-            // temp trailer URL
-            let url = URL(string: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4")
-            completion(url)
         }
     }
 }
